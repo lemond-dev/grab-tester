@@ -9,7 +9,7 @@ public sealed class MainForm : Form
     readonly Label      _lblSc      = new() { Text = "SC 文件：", AutoSize = true };
     readonly TextBox    _scPath     = new() { ReadOnly = true, Width = 480 };
     readonly Button     _browse     = new() { Text = "Browse…", Width = 80 };
-    readonly Label      _lblUid     = new() { Text = "user_uid（必填）：", AutoSize = true };
+    readonly Label      _lblUid     = new() { Text = "username（必填）：", AutoSize = true };
     readonly TextBox    _userUid    = new() { Width = 580 };
     readonly Label      _lblApp     = new() { Text = "app_type（可选）：", AutoSize = true };
     readonly TextBox    _appType    = new() { Width = 180, Text = "kt" };
@@ -94,7 +94,7 @@ public sealed class MainForm : Form
         var path = _scPath.Text.Trim();
         var uid  = _userUid.Text.Trim();
         if (string.IsNullOrEmpty(path)) { Log("请先选择 .sc 文件",  Color.Yellow); return; }
-        if (string.IsNullOrEmpty(uid))  { Log("user_uid 不能为空", Color.Yellow); return; }
+        if (string.IsNullOrEmpty(uid))  { Log("username 不能为空", Color.Yellow); return; }
 
         _module?.Dispose();
         _module = null;
