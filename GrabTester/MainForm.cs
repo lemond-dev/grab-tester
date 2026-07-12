@@ -5,74 +5,103 @@ namespace GrabTester;
 
 public sealed class MainForm : Form
 {
-    readonly TextBox _scPath   = new() { ReadOnly = true, Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top };
-    readonly Button  _browse   = new() { Text = "Browse…", AutoSize = true };
-    readonly TextBox _userUid  = new() { Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top, PlaceholderText = "Required — UUID" };
-    readonly TextBox _appType  = new() { Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top, PlaceholderText = "Optional, e.g. kt" };
-    readonly TextBox _user     = new() { Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top, PlaceholderText = "Optional, Windows username" };
-    readonly Button  _start    = new() { Text = "Start", BackColor = Color.FromArgb(40, 167, 69),  ForeColor = Color.White, AutoSize = true };
-    readonly Button  _cancel   = new() { Text = "Cancel", BackColor = Color.FromArgb(220, 53, 69), ForeColor = Color.White, AutoSize = true, Enabled = false };
-    readonly RichTextBox _log  = new() { ReadOnly = true, BackColor = Color.FromArgb(30, 30, 30), ForeColor = Color.LightGray, Font = new Font("Consolas", 9f), Dock = DockStyle.Fill, ScrollBars = RichTextBoxScrollBars.Vertical };
+    // --- controls ---
+    readonly Label      _lblSc      = new() { Text = "SC 文件：", AutoSize = true };
+    readonly TextBox    _scPath     = new() { ReadOnly = true, Width = 480 };
+    readonly Button     _browse     = new() { Text = "Browse…", Width = 80 };
+    readonly Label      _lblUid     = new() { Text = "user_uid（必填）：", AutoSize = true };
+    readonly TextBox    _userUid    = new() { Width = 580 };
+    readonly Label      _lblApp     = new() { Text = "app_type（可选）：", AutoSize = true };
+    readonly TextBox    _appType    = new() { Width = 180, Text = "kt" };
+    readonly Label      _lblUser    = new() { Text = "user（可选）：", AutoSize = true };
+    readonly TextBox    _user       = new() { Width = 180 };
+    readonly Button     _start      = new() { Text = "Start",  Width = 90, Height = 30, BackColor = Color.FromArgb(40, 167, 69),  ForeColor = Color.White };
+    readonly Button     _cancel     = new() { Text = "Cancel", Width = 90, Height = 30, BackColor = Color.FromArgb(220, 53, 69), ForeColor = Color.White, Enabled = false };
+    readonly RichTextBox _log       = new() { ReadOnly = true, BackColor = Color.FromArgb(30, 30, 30), ForeColor = Color.LightGray, Font = new Font("Consolas", 9f), ScrollBars = RichTextBoxScrollBars.Vertical };
 
     GrabModule? _module;
 
     public MainForm()
     {
-        Text = "GrabTester";
-        Size = new Size(760, 560);
-        MinimumSize = new Size(560, 400);
+        Text        = "GrabTester";
+        ClientSize  = new Size(680, 520);
+        MinimumSize = new Size(500, 400);
 
-        var top = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Padding = new Padding(8) };
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        // --- layout using absolute positioning + resize handler ---
+        SuspendLayout();
 
-        top.Controls.Add(new Label { Text = "SC 文件", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
-        top.SetColumnSpan(top.Controls[^1], 2);
+        int y = 12;
 
-        _scPath.Width = 500;
-        top.Controls.Add(_scPath, 0, 1);
-        top.Controls.Add(_browse, 1, 1);
+        _lblSc.Location = new Point(12, y + 3);
+        y += _lblSc.Height + 2;
 
-        top.Controls.Add(new Label { Text = "user_uid", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 2);
-        top.SetColumnSpan(top.Controls[^1], 2);
-        top.Controls.Add(_userUid, 0, 3);
-        top.SetColumnSpan(_userUid, 2);
+        _scPath.Location = new Point(12, y);
+        _browse.Location = new Point(_scPath.Right + 6, y - 1);
+        y += _scPath.Height + 10;
 
-        top.Controls.Add(new Label { Text = "app_type（可选）", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 4);
-        top.Controls.Add(new Label { Text = "user（可选）", AutoSize = true, Anchor = AnchorStyles.Left }, 1, 4);
-        top.Controls.Add(_appType, 0, 5);
-        top.Controls.Add(_user, 1, 5);
+        _lblUid.Location = new Point(12, y);
+        y += _lblUid.Height + 2;
+        _userUid.Location = new Point(12, y);
+        y += _userUid.Height + 10;
 
-        var btnRow = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(8, 4, 8, 4) };
-        btnRow.Controls.AddRange(new Control[] { _start, _cancel });
+        _lblApp.Location  = new Point(12, y);
+        _lblUser.Location = new Point(240, y);
+        y += _lblApp.Height + 2;
+        _appType.Location = new Point(12, y);
+        _user.Location    = new Point(240, y);
+        y += _appType.Height + 12;
 
-        Controls.Add(_log);
-        Controls.Add(btnRow);
-        Controls.Add(top);
+        _start.Location  = new Point(12, y);
+        _cancel.Location = new Point(_start.Right + 10, y);
+        y += _start.Height + 10;
+
+        _log.Location = new Point(12, y);
+        _log.Size     = new Size(ClientSize.Width - 24, ClientSize.Height - y - 12);
+        _log.Anchor   = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+        Controls.AddRange(new Control[]
+        {
+            _lblSc, _scPath, _browse,
+            _lblUid, _userUid,
+            _lblApp, _appType, _lblUser, _user,
+            _start, _cancel,
+            _log,
+        });
+
+        ResumeLayout(false);
 
         _browse.Click += Browse_Click;
         _start.Click  += Start_Click;
         _cancel.Click += Cancel_Click;
-
-        FormClosing += (_, _) => { _module?.Dispose(); };
+        FormClosing   += (_, _) => _module?.Dispose();
     }
+
+    // ---- events ----
 
     void Browse_Click(object? sender, EventArgs e)
     {
-        using var dlg = new OpenFileDialog { Filter = "SC files (*.sc)|*.sc|All files (*.*)|*.*", Title = "选择 module_grab.sc" };
-        if (dlg.ShowDialog() == DialogResult.OK)
+        using var dlg = new OpenFileDialog
+        {
+            Filter = "SC files (*.sc)|*.sc|All files (*.*)|*.*",
+            Title  = "选择 module_grab.sc",
+        };
+        if (dlg.ShowDialog(this) == DialogResult.OK)
             _scPath.Text = dlg.FileName;
     }
 
     void Start_Click(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_scPath.Text))  { Log("请先选择 .sc 文件", Color.Yellow); return; }
-        if (string.IsNullOrWhiteSpace(_userUid.Text)) { Log("user_uid 不能为空", Color.Yellow); return; }
+        var path = _scPath.Text.Trim();
+        var uid  = _userUid.Text.Trim();
+        if (string.IsNullOrEmpty(path)) { Log("请先选择 .sc 文件",  Color.Yellow); return; }
+        if (string.IsNullOrEmpty(uid))  { Log("user_uid 不能为空", Color.Yellow); return; }
 
         _module?.Dispose();
+        _module = null;
+
         try
         {
-            _module = new GrabModule(_scPath.Text);
+            _module = new GrabModule(path);
         }
         catch (Exception ex)
         {
@@ -81,67 +110,71 @@ public sealed class MainForm : Form
         }
 
         _log.Clear();
-        _start.Enabled  = false;
-        _cancel.Enabled = true;
+        SetRunning(true);
         Log("→ 启动 grab…", Color.Cyan);
 
         SendFn cb = OnFrame;
-        _module.Start(_userUid.Text.Trim(), _appType.Text.Trim(), _user.Text.Trim(), cb);
         GC.KeepAlive(cb);
+        _module.Start(uid, _appType.Text.Trim(), _user.Text.Trim(), cb);
     }
 
     void Cancel_Click(object? sender, EventArgs e)
     {
         _module?.Cancel();
-        Log("→ 取消信号已发送", Color.Yellow);
+        Log("→ 取消信号已发", Color.Yellow);
     }
+
+    // ---- frame callback (called from native thread) ----
 
     void OnFrame(byte ch, IntPtr data, nuint len, IntPtr ctx)
     {
         if (len == 0) return;
-        var raw = new byte[(int)len];
+        var raw  = new byte[(int)len];
         Marshal.Copy(data, raw, 0, (int)len);
         var tok  = raw[0];
         var body = Encoding.UTF8.GetString(raw, 1, raw.Length - 1);
-        var color = tok switch
-        {
-            0x82 => Color.LightGreen,
-            0x65 => Color.OrangeRed,
-            _    => Color.LightGray,
-        };
-        var line = $"[{DateTime.Now:HH:mm:ss}] [{tok:X2}] {body}";
+        var col  = tok switch { 0x82 => Color.LightGreen, 0x65 => Color.OrangeRed, _ => Color.LightGray };
 
-        if (InvokeRequired)
-            BeginInvoke(() => AppendLog(line, color));
-        else
-            AppendLog(line, color);
+        AppendLogThreadSafe($"[{DateTime.Now:HH:mm:ss}] [{tok:X2}] {body}", col);
 
         if (tok == 0x82 || tok == 0x65)
+            BeginInvokeIfRequired(() => SetRunning(false));
+    }
+
+    // ---- helpers ----
+
+    void SetRunning(bool running)
+    {
+        _start.Enabled  = !running;
+        _cancel.Enabled = running;
+    }
+
+    void AppendLogThreadSafe(string line, Color color)
+    {
+        if (_log.IsDisposed) return;
+        if (_log.InvokeRequired)
         {
-            if (InvokeRequired)
-                BeginInvoke(OnDone);
-            else
-                OnDone();
+            _log.BeginInvoke(() => Append(line, color));
+            return;
+        }
+        Append(line, color);
+
+        void Append(string l, Color c)
+        {
+            _log.SelectionStart  = _log.TextLength;
+            _log.SelectionLength = 0;
+            _log.SelectionColor  = c;
+            _log.AppendText(l + "\n");
+            _log.ScrollToCaret();
         }
     }
 
-    void OnDone()
-    {
-        _start.Enabled  = true;
-        _cancel.Enabled = false;
-    }
+    void Log(string msg, Color color) =>
+        AppendLogThreadSafe($"[{DateTime.Now:HH:mm:ss}] {msg}", color);
 
-    void Log(string msg, Color color)
+    void BeginInvokeIfRequired(Action action)
     {
-        AppendLog($"[{DateTime.Now:HH:mm:ss}] {msg}", color);
-    }
-
-    void AppendLog(string line, Color color)
-    {
-        _log.SelectionStart  = _log.TextLength;
-        _log.SelectionLength = 0;
-        _log.SelectionColor  = color;
-        _log.AppendText(line + "\n");
-        _log.ScrollToCaret();
+        if (InvokeRequired) BeginInvoke(action);
+        else action();
     }
 }
